@@ -67,7 +67,10 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+Today's Schedule
+Reminder: Feeding for Woody (10 min, high priority)
+Reminder: Walk for Melo (30 min, high priority)
+Reminder: Grooming for Melo (45 min, low priority)
 ```
 
 ## 📐 Smarter Scheduling

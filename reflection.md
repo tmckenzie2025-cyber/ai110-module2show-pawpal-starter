@@ -3,14 +3,23 @@
 ## 1. System Design
 
 **a. Initial design**
+- Track a pet
+- Track task
+- Generate a daily plan
 
 - Briefly describe your initial UML design.
+    -
 - What classes did you include, and what responsibilities did you assign to each?
-
+    -Pet: Holds its name and type and returns them when asked.
+    -Task: Holds one care job’s type, time, and priority, and reminds the owner when it’s due.
+    -Owner: Keeps track of the owner’s pets and tasks, and asks for the day’s plan.
+    -Scheduler: Builds the day’s plan from the tasks and the time block.
 **b. Design changes**
 
 - Did your design change during implementation?
+    -Yes
 - If yes, describe at least one change and why you made it.
+    -Task didn’t know which pet it belonged to. Now it does.
 
 ---
 
