@@ -90,7 +90,78 @@ class Owner:
         return Scheduler().generate_plan(self)
 
 
+@dataclass
+class Conflict:
+    """A group of pending tasks whose time windows overlap."""
+    start_time: str          # "HH:MM" where the overlap group begins
+    tasks: list              # the overlapping tasks, earliest first
+    same_pet: bool           # True if every task belongs to one pet
+    suggested_time: str = None  # "HH:MM" free slot for the last task, or None
+
+
+def _to_minutes(hhmm):
+    """Converts "HH:MM" to minutes after midnight, or None if invalid/blank."""
+    try:
+        hours, minutes = hhmm.split(":")
+        total = int(hours) * 60 + int(minutes)
+    except (ValueError, AttributeError):
+        return None
+    return total if 0 <= total < 24 * 60 else None
+
+
+def _to_hhmm(minutes):
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
 class Scheduler:
+
+    def find_conflicts(self, tasks):
+        """Returns a Conflict for each group of tasks whose time windows overlap.
+
+        A task occupies [start, start + duration). Back-to-back tasks (one
+        ends exactly when the next starts) do not conflict. Tasks without a
+        valid start_time are ignored. Each Conflict suggests a free slot for
+        its last task, or None if nothing fits before midnight.
+        """
+        timed = [(m, t) for t in tasks if (m := _to_minutes(t.start_time)) is not None]
+        timed.sort(key=lambda pair: pair[0])
+
+        groups = []
+        for start, task in timed:
+            end = start + task.duration_minutes
+            if groups and start < groups[-1]["end"]:
+                groups[-1]["tasks"].append(task)
+                groups[-1]["end"] = max(groups[-1]["end"], end)
+            else:
+                groups.append({"start": start, "end": end, "tasks": [task]})
+
+        conflicts = []
+        for group in groups:
+            if len(group["tasks"]) < 2:
+                continue
+            members = group["tasks"]
+            others = [(m, t) for m, t in timed if t not in members]
+            mover = members[-1]
+            slot = self._next_free_slot(group["end"], mover.duration_minutes, others)
+            conflicts.append(
+                Conflict(
+                    start_time=_to_hhmm(group["start"]),
+                    tasks=members,
+                    same_pet=len({id(t.pet) for t in members}) == 1,
+                    suggested_time=_to_hhmm(slot) if slot is not None else None,
+                )
+            )
+        return conflicts
+
+    @staticmethod
+    def _next_free_slot(earliest, duration, others):
+        """First start >= earliest where `duration` minutes avoid every other task."""
+        candidate = earliest
+        for start, task in others:  # sorted by start
+            end = start + task.duration_minutes
+            if start < candidate + duration and end > candidate:
+                candidate = end
+        return candidate if candidate + duration <= 24 * 60 else None
 
     def sort_by_time(self, tasks):
         """Returns tasks sorted by start_time ("HH:MM"), earliest first.
