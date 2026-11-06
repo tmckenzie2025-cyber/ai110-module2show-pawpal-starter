@@ -56,22 +56,33 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 
 ## 🧪 Testing PawPal+
 
+Run the tests from the project root:
+
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output:
+The tests in `tests/test_pawpal.py` cover:
+
+- **Task basics:** marking a task complete updates its status, and adding a task to a pet increases the pet's task count.
+- **Sorting correctness:** `Scheduler.sort_by_time` returns tasks in chronological order.
+- **Recurrence logic:** completing a daily task creates a new, incomplete task due the following day.
+- **Conflict detection:** `Scheduler.checker` flags tasks that share the same start time, including across different pets.
+
+Successful test run:
 
 ```
-Today's Schedule
-Reminder: Feeding for Woody (10 min, high priority)
-Reminder: Walk for Melo (30 min, high priority)
-Reminder: Grooming for Melo (45 min, low priority)
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/moo/Documents/VS Code/Python Pratice/Code_Path/PawPal/ai110-module2show-pawpal-starter
+plugins: anyio-4.10.0
+collected 5 items
+
+tests/test_pawpal.py .....                                               [100%]
+
+============================== 5 passed in 0.01s ===============================
 ```
+Confidence Level 
 
 ## 📐 Smarter Scheduling
 

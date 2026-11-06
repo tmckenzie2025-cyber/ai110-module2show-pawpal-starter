@@ -64,7 +64,7 @@
 - What behaviors did you test?
 - Why were these tests important?
 
-**b. Confidence**
+**b. Confidence** ⭐⭐⭐
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
