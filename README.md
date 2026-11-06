@@ -79,10 +79,10 @@ Reminder: Grooming for Melo (45 min, low priority)
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | Scheduler.sort_by_time() | Orders tasks by their "HH:MM" start time, earliest first; tasks with no start time go last. |
+| Filtering | Owner.filter_tasks() | Returns tasks across all pets, narrowed by completion status and/or pet name (case-insensitive). |
+| Conflict handling | Scheduler.checker() | Flags every start time shared by two or more tasks and returns a warning for each; returns an empty list if none. |
+| Recurring tasks | Task.mark_complete() | Completing a daily or weekly task automatically adds the next occurrence to the pet, due 1 or 7 days out. |
 
 ## 📸 Demo Walkthrough
 

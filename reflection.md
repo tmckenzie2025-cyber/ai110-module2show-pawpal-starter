@@ -28,13 +28,19 @@
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+    Total available time: Owner is created with 120 minutes.
+    Priority: high, medium, and low, in that order.
+    Duration: shorter tasks are preferred within the same priority.
+    Completion: completed tasks are left out of today’s plan.
 - How did you decide which constraints mattered most?
+
 
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+    One tradeoff my scheduler makes checker groups tasks by their exact start_time. If two or more tasks share a time, it returns a warning. It doesn’t compare durations, so a 30-minute task starting at 08:00 and a 10-minute task starting at 08:15 won’t be flagged.
 - Why is that tradeoff reasonable for this scenario?
-
+    Reasonable because its simple to read and test. Owners set each start time to a specific minute, so an exact match is a clear sign of a problem. The check only warns and never blocks the plan, so the owner can decide what to change.
 ---
 
 ## 3. AI Collaboration
