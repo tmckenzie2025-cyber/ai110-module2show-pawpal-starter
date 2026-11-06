@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## ✨ Features
+
+- Sorting by time: `Scheduler.sort_by_time()` orders tasks by their `HH:MM` start time, earliest first. Tasks with no start time go last, and tasks with equal times keep the order they were added.
+- Filtering: `Owner.filter_tasks()` narrows tasks across all pets by completion status and/or pet name (case-insensitive).
+- Conflict warnings:
+  - `Scheduler.checker()` flags every start time shared by two or more tasks and returns one warning per time (used by `main.py`).
+  - `Scheduler.find_conflicts()` is duration-aware. It flags tasks whose time windows overlap, treats back-to-back tasks as fine, and suggests the next free slot for the last task. It also records whether the clash is for one pet or across pets (used by the Streamlit app).
+- Daily and weekly recurrence: completing a daily or weekly task with `Task.mark_complete()` automatically adds the next occurrence to the pet, due 1 or 7 days out. Completing a task twice does not duplicate it, and `"once"` tasks do not repeat.
+- Priority-based daily plan: `Scheduler.generate_plan()` takes pending tasks in order of priority (high, medium, low), shortest first within a priority, and adds each one that still fits in the owner's available time. Tasks that don't fit are skipped and reported in the app.
+- Input validation (Streamlit): start times must be valid `HH:MM` (`9:00` is normalized to `09:00`), duplicate pet names are rejected, and empty titles are refused.
+
 ## Getting started
 
 ### Setup
@@ -82,7 +93,19 @@ tests/test_pawpal.py .....                                               [100%]
 
 ============================== 5 passed in 0.01s ===============================
 ```
-Confidence Level 
+
+### Test coverage
+
+The suite has 5 tests covering:
+- Marking a task complete
+- Adding a task to a pet
+- Sorting tasks by start time
+- Creating the next daily task when a daily task is completed
+- Flagging tasks that share a start time
+
+Not yet covered: weekly recurrence, `Owner.filter_tasks`, and the overlap check in `Scheduler.find_conflicts`.
+
+Confidence Level ⭐⭐⭐
 
 ## 📐 Smarter Scheduling
 
@@ -97,12 +120,100 @@ Confidence Level
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### Main UI features
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+The Streamlit app (`python -m streamlit run app.py`) lets you:
+
+- Set your available time for the day and add pets (name and species).
+- Add tasks for a chosen pet: title, duration, priority, repeat frequency (daily, weekly, once), and an optional start time.
+- View the task schedule in a table sorted by start time, filtered by pet and by status (All, Pending, Completed).
+- See conflict warnings above the table, with the affected rows highlighted.
+- Mark a task complete, which adds the next occurrence for daily and weekly tasks.
+- Generate today's plan, which shows the tasks that fit your available time and lists any that didn't.
+
+### Example workflow
+
+1. Add a pet. Enter "Mochi", choose "dog", and click *Add pet*.
+2. Schedule a task. Add "Walk" at `09:00` (30 min, high priority, daily).
+3. Add a second task "Feed" at `9:00`. The app normalizes the time to `09:00` and shows a warning: *9:00 AM is double-booked*, naming both tasks and suggesting a new time for "Feed". Both rows are highlighted.
+4. Resolve the clash. The app has no edit button, so either mark the clashing task complete or add it again at the suggested time. Completed tasks no longer count toward conflicts.
+5. View the schedule. The table is sorted by time, and the filters narrow it to one pet or to pending tasks.
+6. Mark "Walk" complete. A success message confirms that tomorrow's walk was added automatically.
+7. Click *Generate plan*. The app shows the tasks that fit your available time in time order, with a summary such as "Planned 2 task(s) using 40 of 120 minutes."
+
+### Key scheduler behaviors shown
+
+- Sorting: tasks added out of order appear chronologically, with untimed tasks last.
+- Filtering: by pet and by completion status.
+- Conflict warnings: plain-language warnings with a suggested free slot.
+- Recurrence: completing a daily or weekly task creates the next occurrence.
+- Plan building: high-priority and short tasks are placed first, and anything that doesn't fit is reported.
+
+### Sample CLI output
+
+`python main.py` adds tasks out of order, completes two of them, and prints the sorted, filtered, and conflict views:
+
+```
+All tasks (as added, out of order)
+  14:00  Grooming    Melo   [todo]
+  08:00  Walk        Melo   [done]
+  08:00  Walk        Melo   [todo]
+  17:30  Brushing    Woody  [todo]
+  17:30  Playtime    Woody  [todo]
+  06:00  Feeding     Woody  [done]
+  09:15  Medication  Woody  [todo]
+  06:00  Feeding     Woody  [todo]
+
+Sorted by time
+  06:00  Feeding     Woody  [done]
+  06:00  Feeding     Woody  [todo]
+  08:00  Walk        Melo   [done]
+  08:00  Walk        Melo   [todo]
+  09:15  Medication  Woody  [todo]
+  14:00  Grooming    Melo   [todo]
+  17:30  Brushing    Woody  [todo]
+  17:30  Playtime    Woody  [todo]
+
+Pending only
+  14:00  Grooming    Melo   [todo]
+  08:00  Walk        Melo   [todo]
+  17:30  Brushing    Woody  [todo]
+  17:30  Playtime    Woody  [todo]
+  09:15  Medication  Woody  [todo]
+  06:00  Feeding     Woody  [todo]
+
+Completed only
+  08:00  Walk        Melo   [done]
+  06:00  Feeding     Woody  [done]
+
+Melo's tasks
+  14:00  Grooming    Melo   [todo]
+  08:00  Walk        Melo   [done]
+  08:00  Walk        Melo   [todo]
+
+Woody's pending tasks, sorted by time
+  06:00  Feeding     Woody  [todo]
+  09:15  Medication  Woody  [todo]
+  17:30  Brushing    Woody  [todo]
+  17:30  Playtime    Woody  [todo]
+
+Today's Schedule
+Reminder: Feeding for Woody (10 min, high priority)
+Reminder: Walk for Melo (30 min, high priority)
+Reminder: Medication for Woody (5 min, high priority)
+Reminder: Playtime for Woody (20 min, medium priority)
+Reminder: Brushing for Woody (15 min, low priority)
+
+Conflict check
+Conflict at 08:00: Walk (Melo), Walk (Melo)
+Conflict at 17:30: Brushing (Woody), Playtime (Woody)
+Conflict at 06:00: Feeding (Woody), Feeding (Woody)
+```
+
+Notes on this output:
+
+- The completed "Feeding" and "Walk" each appear twice. Completing a daily task adds tomorrow's copy with the same start time, which is why each shows once as `[done]` and once as `[todo]`.
+- Because `main.py` uses `Scheduler.checker()`, which compares start times only, those completed/recurring pairs are reported as "conflicts" (for example, `Walk (Melo), Walk (Melo)`). The real conflict is `Brushing` and `Playtime` at 17:30. The Streamlit app avoids this by checking only pending tasks.
+- Today's plan lists tasks by priority, then by shortest duration, until the available time runs out. `Grooming` (45 min, low priority) is left out because it no longer fits.
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

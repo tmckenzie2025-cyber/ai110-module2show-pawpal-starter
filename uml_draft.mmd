@@ -1,25 +1,57 @@
 classDiagram
+    class Priority {
+        <<enumeration>>
+        HIGH
+        MEDIUM
+        LOW
+    }
     class Pet {
-        name
-        type
-        get_info()
+        +str name
+        +str type
+        +list tasks
+        +add_task(task)
+        +get_info() str
     }
     class Task {
-        type
-        time
-        priority
-        remind()
+        +str description
+        +int duration_minutes
+        +Priority priority
+        +Pet pet
+        +str frequency
+        +bool completed
+        +str start_time
+        +date due_date
+        +mark_complete()
+        +remind() str
     }
     class Owner {
-        name
-        available_time
-        get_plan()
+        +str name
+        +int available_time
+        +list pets
+        +add_pet(pet)
+        +get_all_tasks() list
+        +filter_tasks(completed, pet_name) list
+        +get_plan() list
     }
     class Scheduler {
-        date
-        time_block
-        generate_plan()
+        +sort_by_time(tasks) list
+        +generate_plan(owner) list
+        +find_conflicts(tasks) list
+        +checker(tasks) list
     }
-    Owner "1" --> "*" Pet : has
-    Owner "1" --> "*" Task : has
-    Scheduler ..> Task : schedules
+    class Conflict {
+        +str start_time
+        +list tasks
+        +bool same_pet
+        +str suggested_time
+    }
+
+    Owner "1" o-- "*" Pet : owns
+    Pet "1" o-- "*" Task : has
+    Task "*" --> "1" Pet : belongs to
+    Task --> Priority
+    Task ..> Task : creates next occurrence
+    Owner ..> Scheduler : get_plan() uses
+    Scheduler ..> Owner : plans for
+    Scheduler ..> Task : sorts / checks
+    Scheduler ..> Conflict : returns
